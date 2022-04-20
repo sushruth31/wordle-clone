@@ -3,19 +3,66 @@ import { useEffect, useState } from "react";
 import Keyboard from "./keyboard";
 import useKeyInput from "./useKeyInput";
 
-let word = "hello";
+let wordOfTheDay = "hello";
 
 const getKey = (rowI, cellI) => `${rowI} ${cellI}`;
 
 export default function Grid() {
   const [currentRow, setCurrentRow] = useState(0);
   const [currentSquareinRow, setCurrentSqaureInRow] = useState(-1);
-  const [gridMap, setGridMap] = useState(new Map([]));
+  const [gridMap, setGridMap] = useState(new Map());
   const [keyEvent, setKey] = useState(null);
+  const [attempts, setAttempts] = useState(new Map());
+
+  //gridmap: "0 1" => 'k'
+
+  //attemptsMap: 0 => [{letter: 'b', isInWord: true; correctIndex: true}, {}]
+
+  const checkIfMatch = enteredWord => {
+    //add the attempt to the attempts map
+
+    const isLetterInWord = () => {};
+    const isCorrectIndex = () => {};
+
+    //create array of objects value for map
+    let val = [];
+    for (let i = 0; i < enteredWord; i++) {
+      let letter = enteredWord[i];
+      val.push({
+        letter,
+        isInWord: isLetterInWord(),
+        correctIndex: isCorrectIndex(),
+      });
+    }
+
+    setAttempts(attempts => {
+      let attemptsCopy = new Map([...attempts]);
+      attemptsCopy.set(currentRow.val);
+    });
+  };
 
   const handleEnter = () => {
-    setCurrentRow(r => r + 1);
-    setCurrentSqaureInRow(-1);
+    //first check if we have 5 letters
+    let map = [...gridMap];
+    let letters = [];
+
+    for (let i = 0; i < map.length; i++) {
+      let row = Number(map[i][0].split("")[0]);
+      let letter = map[i][1];
+      if (row === currentRow) {
+        letters.push(letter);
+      }
+    }
+
+    if (letters.length !== 5) return;
+
+    //now get the word
+    let enteredWord = letters.join("");
+
+    checkIfMatch(enteredWord, wordOfTheDay);
+
+    // setCurrentRow(r => r + 1);
+    // setCurrentSqaureInRow(-1);
   };
 
   const mapSet = (rowI, cellI, val) => {
