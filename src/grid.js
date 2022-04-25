@@ -1,27 +1,36 @@
 import { Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import Keyboard from "./keyboard";
-import useKeyInput from "./useKeyInput";
 
 let wordOfTheDay = "hello";
 //my word is 'haehjl'
 
 const getKey = (rowI, cellI) => `${rowI} ${cellI}`;
 
-function findIndexes(ltr, ltrI) {
-  let indexes = [];
-  let compareWord = [...wordOfTheDay].map(el => el.toUpperCase()).join("");
-  for (let i = 0; i < compareWord.length; i++) {
-    const wordOfTheDayLtr = compareWord[i];
-    if (wordOfTheDayLtr === ltr) {
-      let perfectMatch = false;
-      if (ltrI === i) {
-        perfectMatch = true;
-      }
-      indexes.push({ index: i, perfectMatch });
-    }
+function findIndexes(
+  ltr,
+  ltrI,
+  wordToMatch = [...wordOfTheDay].map(l => l.toUpperCase()),
+  res = []
+) {
+  if (!wordToMatch.includes(ltr)) {
+    return res;
   }
-  return indexes;
+
+  //we have a match. get the key of the match
+  let perfectMatch = false;
+  let index = wordToMatch.findIndex((l, i) => {
+    if (i === ltrI) perfectMatch = true;
+    return l === ltr;
+  });
+
+  res.push({ index, perfectMatch });
+
+  //change the entry to blank character so it gets ignored on next call
+
+  wordToMatch[index] = "";
+  //call again untill all matches are found
+  return findIndexes(ltr, ltrI, wordToMatch, res);
 }
 
 export default function Grid() {
@@ -30,16 +39,36 @@ export default function Grid() {
   const [gridMap, setGridMap] = useState(new Map());
   const [attempts, setAttempts] = useState(new Map());
   const [keyEvent, setKey] = useState(null);
-  const [isWinner, setIsWinner] = useState(false);
 
   //gridmap: "0 1" => 'k'
 
   //attemptsMap: 0 => [{letter: 'b', index: [0, 1] }, {}]
 
+  function handleWin() {
+    console.log("you win");
+  }
+
+  function isWinner(attempt) {
+    //first check if any index prop has length of 0
+
+    if (attempt.some(o => !o.indexes.length)) {
+      return false;
+    }
+
+    let enteredLetters = attempt
+      .map(o => o.letter)
+      .map(ltr => ltr.toUpperCase())
+      .join("");
+    for (let i = 0; i < enteredLetters.length; i++) {
+      if (enteredLetters[i] !== wordOfTheDay[i].toUpperCase()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   function addToAttempts(enteredWord) {
     //add the attempt to the attempts map
-
-    let map = new Map();
 
     //create array of objects value for map
     let val = [];
@@ -51,36 +80,15 @@ export default function Grid() {
         indexes: findIndexes(letter, i),
       });
     }
-    function isWinner(attempt) {
-      //first check if any index prop has length of 0
-
-      if (attempt.some(o => !o.indexes.length)) {
-        return false;
-      }
-
-      let enteredLetters = attempt
-        .map(o => o.letter)
-        .map(ltr => ltr.toUpperCase())
-        .join("");
-      for (let i = 0; i < enteredLetters.length; i++) {
-        if (enteredLetters[i] !== wordOfTheDay[i].toUpperCase()) {
-          return false;
-        }
-      }
-      return true;
-    }
 
     //check if word is a winner
 
     if (isWinner(val)) {
-      setIsWinner(true);
-      return console.log("you win!");
+      return handleWin();
     }
 
     setAttempts(attempts => new Map(attempts).set(currentRow, val));
   }
-
-  console.log(attempts);
 
   const handleEnter = () => {
     //first check if we have 5 letters
