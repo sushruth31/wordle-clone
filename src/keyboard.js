@@ -6,9 +6,9 @@ let keyboardRows = [row1, row2, row3];
 
 export default function Keyboard({
   handleKey,
-  handleKeyWrapper,
   handleDelete,
   handleEnter,
+  keyboardColors,
 }) {
   return (
     <div className="mt-10">
@@ -26,21 +26,27 @@ export default function Keyboard({
             {row.map((ltr, ltrI) => {
               let isEnter = rowI === 2 && ltrI === 0;
               let isDelete = rowI === 2 && ltrI === row.length - 1;
-
-              let funcMap = new Map([
-                [isEnter, handleEnter],
-                [isDelete, handleDelete],
-              ]);
+              let color = keyboardColors.get(ltr.toUpperCase());
 
               return (
-                <Button
+                <button
+                  className={`p-1 m-1 rounded h-14 text-white`}
                   key={ltr}
-                  style={{ minWidth: 40 }}
+                  style={{
+                    minWidth: 40,
+                    backgroundColor: !color
+                      ? "gray"
+                      : color === "gray"
+                      ? "#4a4a4c"
+                      : color,
+                  }}
                   variant="outlined"
-                  onClick={funcMap.get(true) ?? handleKeyWrapper(handleKey)}
+                  onClick={
+                    isEnter ? handleEnter : isDelete ? handleDelete : handleKey
+                  }
                 >
-                  {ltr}
-                </Button>
+                  {ltr.toUpperCase()}
+                </button>
               );
             })}
           </div>

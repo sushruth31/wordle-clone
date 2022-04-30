@@ -1,16 +1,12 @@
 import { Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import Keyboard from "./keyboard";
+import wordList from "./wordlist.json";
 
 let wordOfTheDay = "hello";
 //my word is 'haehjl'
 
 const getKey = (rowI, cellI) => `${rowI} ${cellI}`;
-
-function isWinner(ltrMap) {
-  //if all colors are green return true
-  return [...ltrMap].every(([_, { color }]) => color === "green");
-}
 
 function findColor(ltrI, ltr) {
   let _wordOfTheDay = wordOfTheDay
@@ -32,20 +28,30 @@ function findColor(ltrI, ltr) {
     }
   }
 
-  return "black ";
+  return "gray";
 }
+
+const handleKeyWrapper = fn => keyEvent =>
+  fn(keyEvent.target.innerText.toUpperCase());
 
 export default function Grid() {
   const [currentRow, setCurrentRow] = useState(0);
   const [currentSquareinRow, setCurrentSqaureInRow] = useState(-1);
   const [gridMap, setGridMap] = useState(new Map());
   const [attempts, setAttempts] = useState(new Map());
-  const [isWinner, setIsWinner] = useState(false);
+  const [isGameOver, setIsGameOver] = useState(null);
+  const [keyboardColors, setKeyboardColors] = useState(new Map());
 
   //gridmap: "0 1" => 'k'
 
   function handleWin() {
     console.log("you win");
+    setIsGameOver({ outcome: "win" });
+  }
+
+  function isWinner(ltrMap) {
+    //if all colors are green return true
+    return [...ltrMap].every(([_, { color }]) => color === "green");
   }
 
   function addToAttempts(enteredWord) {
@@ -59,11 +65,24 @@ export default function Grid() {
       ltrMap.set(i, { color: findColor(i, ltr), ltr });
     }
 
-    console.log(ltrMap);
-
     //check if word is a winner
 
     setAttempts(p => new Map(p).set(currentRow, ltrMap));
+
+    //update keybaord colors. if green preserve. anything else overwrite
+
+    setKeyboardColors(p => {
+      let prevState = new Map(p);
+
+      for (let i = 0; i < ltrMap.size; ++i) {
+        let { color, ltr } = ltrMap.get(i);
+        if (prevState.get(ltr) !== "green") {
+          prevState.set(ltr, color);
+        }
+      }
+
+      return prevState;
+    });
 
     if (isWinner(ltrMap)) {
       return handleWin();
@@ -97,10 +116,8 @@ export default function Grid() {
     setGridMap(new Map(gridMap.set(getKey(rowI, cellI), val)));
   };
 
-  const handleKeyWrapper = fn => keyEvent => fn(keyEvent.target.innerText);
-
   function handleKey(key) {
-    if (!key || isWinner) return;
+    if (!key || isGameOver) return;
 
     //filter out anything not a letter
     if (!isNaN(Number(key)) || key.length !== 1 || !key.match(/[a-z]/i)) return;
@@ -114,10 +131,6 @@ export default function Grid() {
       }
     });
   }
-
-  // useEffect(() => {
-  //   console.log({ gridMap, currentSquareinRow });
-  // }, [gridMap]);
 
   const handleDelete = () => {
     if (currentSquareinRow < 0) return;
@@ -139,7 +152,7 @@ export default function Grid() {
             if (rowData) {
               color = rowData.get(ltrI).color;
             }
-            if (color && color !== "black") {
+            if (color && color !== "gray") {
               color = `bg-${color}-500`;
             }
             return (
@@ -160,10 +173,10 @@ export default function Grid() {
         </div>
       ))}
       <Keyboard
-        handleKey={handleKey}
+        keyboardColors={keyboardColors}
         handleEnter={handleEnter}
         handleDelete={handleDelete}
-        handleKeyWrapper={handleKeyWrapper}
+        handleKey={handleKeyWrapper(handleKey)}
       />
     </>
   );
