@@ -37,13 +37,27 @@ const handleKeyWrapper = fn => keyEvent =>
   fn(keyEvent.target.innerText.toUpperCase());
 
 export default function Grid() {
-  const [currentRow, setCurrentRow] = useState(0);
   const [currentSquareinRow, setCurrentSqaureInRow] = useState(-1);
   const [gridMap, setGridMap] = useState(new Map());
   const [attempts, setAttempts] = useState(new Map());
   const [isGameOver, setIsGameOver] = useState(null);
-  const [keyboardColors, setKeyboardColors] = useState(new Map());
   const [wordNotInDict, setWordNotInDict] = useState(false);
+
+  let currentRow = attempts.size;
+
+  let keyboardColors = new Map(); //a => color
+
+  for (let i = 0; i < attempts.size; ++i) {
+    let row = attempts.get(i);
+    for (let [_, { color, ltr }] of row.entries()) {
+      if (keyboardColors.get(ltr) === "green") {
+        continue;
+      }
+      keyboardColors.set(ltr, color);
+    }
+  }
+
+  console.log(keyboardColors);
 
   //gridmap: "0 1" => 'k'
 
@@ -73,19 +87,6 @@ export default function Grid() {
     setAttempts(p => new Map(p).set(currentRow, ltrMap));
 
     //update keybaord colors. if green preserve. anything else overwrite
-
-    setKeyboardColors(p => {
-      let prevState = new Map(p);
-
-      for (let i = 0; i < ltrMap.size; ++i) {
-        let { color, ltr } = ltrMap.get(i);
-        if (prevState.get(ltr) !== "green") {
-          prevState.set(ltr, color);
-        }
-      }
-
-      return prevState;
-    });
 
     if (isWinner(ltrMap)) {
       return handleWin();
@@ -122,7 +123,6 @@ export default function Grid() {
     addToAttempts(letters);
 
     //go to next row and reset pos to 0
-    setCurrentRow(r => r + 1);
     setCurrentSqaureInRow(-1);
   };
 
