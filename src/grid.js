@@ -1,9 +1,11 @@
-import { Typography } from "@mui/material";
+import { Alert, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import Keyboard from "./keyboard";
-import wordList from "./wordlist.json";
+import wordList from "word-list-json";
 
-let wordOfTheDay = "hello";
+const myWordList = wordList.filter(word => word.length === 5);
+
+const wordOfTheDay = "hello";
 //my word is 'haehjl'
 
 const getKey = (rowI, cellI) => `${rowI} ${cellI}`;
@@ -41,6 +43,7 @@ export default function Grid() {
   const [attempts, setAttempts] = useState(new Map());
   const [isGameOver, setIsGameOver] = useState(null);
   const [keyboardColors, setKeyboardColors] = useState(new Map());
+  const [wordNotInDict, setWordNotInDict] = useState(false);
 
   //gridmap: "0 1" => 'k'
 
@@ -104,6 +107,17 @@ export default function Grid() {
 
     if (letters.length !== 5) return;
 
+    //check if word is in dict
+    if (
+      !myWordList.some(
+        word => word.toUpperCase() === letters.join("").toUpperCase()
+      )
+    ) {
+      console.log("word not in dict");
+      //this value is getting set to NaN after some rerenders so just as a precatution
+      setCurrentSqaureInRow(4);
+      return setWordNotInDict(true);
+    }
     //add to attempts
     addToAttempts(letters);
 
@@ -142,36 +156,51 @@ export default function Grid() {
     setGridMap(mapCopy);
   };
 
+  //clear out message
+  useEffect(() => {
+    let timeout;
+    if (wordNotInDict) {
+      timeout = setTimeout(() => {
+        setWordNotInDict(false);
+      }, 1000);
+    }
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [wordNotInDict]);
+
   return (
     <>
-      {[...Array(6)].map((_, rowI) => (
-        <div key={rowI} className="flex">
-          {[...Array(5)].map((_, ltrI) => {
-            let color;
-            let rowData = attempts.get(rowI);
-            if (rowData) {
-              color = rowData.get(ltrI).color;
-            }
-            if (color && color !== "gray") {
-              color = `bg-${color}-500`;
-            }
-            return (
-              <div
-                key={ltrI}
-                className={
-                  "border-[1px] m-1 border-gray-500 h-[60px] w-[60px] flex items-center justify-center" +
-                  " " +
-                  color
-                }
-              >
-                <Typography color="white" variant="h4">
-                  {gridMap.get(getKey(rowI, ltrI))}
-                </Typography>
-              </div>
-            );
-          })}
-        </div>
-      ))}
+      {wordNotInDict && (
+        <Alert icon={false} className="mt-10">
+          <b>Word not in list</b>
+        </Alert>
+      )}
+      <div className="fixed bottom-72">
+        {[...Array(6)].map((_, rowI) => (
+          <div key={rowI} className="flex">
+            {[...Array(5)].map((_, ltrI) => {
+              let color = attempts.get(rowI)?.get(ltrI)?.color;
+              return (
+                <div
+                  key={ltrI}
+                  style={{
+                    backgroundColor: color === "gray" ? "transparent" : color,
+                  }}
+                  className={
+                    "border-[1px] m-1 border-gray-500 h-[60px] w-[60px] flex items-center justify-center"
+                  }
+                >
+                  <Typography color="white" variant="h4">
+                    {gridMap.get(getKey(rowI, ltrI))}
+                  </Typography>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
       <Keyboard
         keyboardColors={keyboardColors}
         handleEnter={handleEnter}

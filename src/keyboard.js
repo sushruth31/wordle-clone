@@ -1,4 +1,3 @@
-import { Button } from "@mui/material";
 let row1 = "qwertyuiop";
 let row2 = "asdfghjkl";
 let row3 = "zxcvbnm";
@@ -11,7 +10,7 @@ export default function Keyboard({
   keyboardColors,
 }) {
   return (
-    <div className="mt-10">
+    <div className="mt-10 fixed bottom-10">
       {keyboardRows.map((row, rowI) => {
         row = row.split("");
         if (rowI === 2) {

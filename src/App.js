@@ -6,7 +6,7 @@ export default function App() {
   return (
     <>
       <Header />
-      <div className="flex items-center justify-center h-screen flex-col">
+      <div className="flex items-center justify-center h-[100%] flex-col">
         <Grid />
       </div>
     </>
