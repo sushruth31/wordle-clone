@@ -4,7 +4,12 @@ let row2 = "asdfghjkl";
 let row3 = "zxcvbnm";
 let keyboardRows = [row1, row2, row3];
 
-export default function Keyboard({ setKey, handleDelete, handleEnter }) {
+export default function Keyboard({
+  handleKey,
+  handleKeyWrapper,
+  handleDelete,
+  handleEnter,
+}) {
   return (
     <div className="mt-10">
       {keyboardRows.map((row, rowI) => {
@@ -32,7 +37,7 @@ export default function Keyboard({ setKey, handleDelete, handleEnter }) {
                   key={ltr}
                   style={{ minWidth: 40 }}
                   variant="outlined"
-                  onClick={funcMap.get(true) ?? setKey}
+                  onClick={funcMap.get(true) ?? handleKeyWrapper(handleKey)}
                 >
                   {ltr}
                 </Button>

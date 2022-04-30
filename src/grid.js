@@ -7,30 +7,32 @@ let wordOfTheDay = "hello";
 
 const getKey = (rowI, cellI) => `${rowI} ${cellI}`;
 
-function findIndexes(
-  ltr,
-  ltrI,
-  wordToMatch = [...wordOfTheDay].map(l => l.toUpperCase()),
-  res = []
-) {
-  if (!wordToMatch.includes(ltr)) {
-    return res;
+function isWinner(ltrMap) {
+  //if all colors are green return true
+  return [...ltrMap].every(([_, { color }]) => color === "green");
+}
+
+function findColor(ltrI, ltr) {
+  let _wordOfTheDay = wordOfTheDay
+    .split("")
+    .map(el => el.toUpperCase())
+    .join("");
+
+  //needs to be two seperate iterations
+
+  for (let i = 0; i < _wordOfTheDay.length; ++i) {
+    if (ltrI === i && ltr === _wordOfTheDay[i]) {
+      return "green";
+    }
   }
 
-  //we have a match. get the key of the match
-  let perfectMatch = false;
-  let index = wordToMatch.findIndex((l, i) => {
-    if (i === ltrI) perfectMatch = true;
-    return l === ltr;
-  });
+  for (let i = 0; i < wordOfTheDay.length; ++i) {
+    if (_wordOfTheDay[i] === ltr) {
+      return "orange";
+    }
+  }
 
-  res.push({ index, perfectMatch });
-
-  //change the entry to blank character so it gets ignored on next call
-
-  wordToMatch[index] = "";
-  //call again untill all matches are found
-  return findIndexes(ltr, ltrI, wordToMatch, res);
+  return "black ";
 }
 
 export default function Grid() {
@@ -38,56 +40,34 @@ export default function Grid() {
   const [currentSquareinRow, setCurrentSqaureInRow] = useState(-1);
   const [gridMap, setGridMap] = useState(new Map());
   const [attempts, setAttempts] = useState(new Map());
-  const [keyEvent, setKey] = useState(null);
+  const [isWinner, setIsWinner] = useState(false);
 
   //gridmap: "0 1" => 'k'
-
-  //attemptsMap: 0 => [{letter: 'b', index: [0, 1] }, {}]
 
   function handleWin() {
     console.log("you win");
   }
 
-  function isWinner(attempt) {
-    //first check if any index prop has length of 0
-
-    if (attempt.some(o => !o.indexes.length)) {
-      return false;
-    }
-
-    let enteredLetters = attempt
-      .map(o => o.letter)
-      .map(ltr => ltr.toUpperCase())
-      .join("");
-    for (let i = 0; i < enteredLetters.length; i++) {
-      if (enteredLetters[i] !== wordOfTheDay[i].toUpperCase()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   function addToAttempts(enteredWord) {
     //add the attempt to the attempts map
+    //attemptsMap: 0 => map(ltrIdx: {color: green, ltr: 'a'})
+    let ltrMap = new Map();
+    //add the colors for each ltr in map
 
-    //create array of objects value for map
-    let val = [];
-    for (let i = 0; i < enteredWord.length; i++) {
-      let letter = enteredWord[i].toUpperCase();
-
-      val.push({
-        letter,
-        indexes: findIndexes(letter, i),
-      });
+    for (let i = 0; i < enteredWord.length; ++i) {
+      let ltr = enteredWord[i].toUpperCase();
+      ltrMap.set(i, { color: findColor(i, ltr), ltr });
     }
+
+    console.log(ltrMap);
 
     //check if word is a winner
 
-    if (isWinner(val)) {
+    setAttempts(p => new Map(p).set(currentRow, ltrMap));
+
+    if (isWinner(ltrMap)) {
       return handleWin();
     }
-
-    setAttempts(attempts => new Map(attempts).set(currentRow, val));
   }
 
   const handleEnter = () => {
@@ -117,9 +97,10 @@ export default function Grid() {
     setGridMap(new Map(gridMap.set(getKey(rowI, cellI), val)));
   };
 
-  useEffect(() => {
-    if (!keyEvent) return;
-    let key = keyEvent.target.innerText;
+  const handleKeyWrapper = fn => keyEvent => fn(keyEvent.target.innerText);
+
+  function handleKey(key) {
+    if (!key || isWinner) return;
 
     //filter out anything not a letter
     if (!isNaN(Number(key)) || key.length !== 1 || !key.match(/[a-z]/i)) return;
@@ -132,7 +113,7 @@ export default function Grid() {
       } else {
       }
     });
-  }, [keyEvent]);
+  }
 
   // useEffect(() => {
   //   console.log({ gridMap, currentSquareinRow });
@@ -152,31 +133,26 @@ export default function Grid() {
     <>
       {[...Array(6)].map((_, rowI) => (
         <div key={rowI} className="flex">
-          {[...Array(5)].map((_, cellI) => {
-            let addClass = "";
-            let attempt = attempts.get(rowI)?.[cellI]?.indexes;
-            console.log(attempt);
-            if (attempt?.length > 0) {
-              addClass += "bg-orange-500";
-              //check if perfect match now
-              let perfectMatch = attempt.find(
-                o => o.index === cellI
-              )?.perfectMatch;
-              if (perfectMatch) {
-                addClass = "bg-green-500";
-              }
+          {[...Array(5)].map((_, ltrI) => {
+            let color;
+            let rowData = attempts.get(rowI);
+            if (rowData) {
+              color = rowData.get(ltrI).color;
+            }
+            if (color && color !== "black") {
+              color = `bg-${color}-500`;
             }
             return (
               <div
-                key={cellI}
+                key={ltrI}
                 className={
                   "border-[1px] m-1 border-gray-500 h-[60px] w-[60px] flex items-center justify-center" +
                   " " +
-                  addClass
+                  color
                 }
               >
                 <Typography color="white" variant="h4">
-                  {gridMap.get(getKey(rowI, cellI))}
+                  {gridMap.get(getKey(rowI, ltrI))}
                 </Typography>
               </div>
             );
@@ -184,9 +160,10 @@ export default function Grid() {
         </div>
       ))}
       <Keyboard
-        setKey={e => setKey(e)}
+        handleKey={handleKey}
         handleEnter={handleEnter}
         handleDelete={handleDelete}
+        handleKeyWrapper={handleKeyWrapper}
       />
     </>
   );
