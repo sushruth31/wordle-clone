@@ -20,22 +20,17 @@ const objectify = map => {
 };
 
 const mapify = obj => {
-  //cannot do recursively
   let target = new Map();
-
-  //  console.log(obj);
 
   for (let key of Object.keys(obj)) {
     target.set(isItANum(key) ? Number(key) : key, createMap(obj[key]));
   }
 
   function createMap(obj) {
-    let innerMap = new Map();
-    for (let key of Object.keys(obj)) {
-      innerMap.set(isItANum(key) ? Number(key) : key, obj[key]);
+    if (["ltr", "color"].some(key => key in obj)) {
+      return obj;
     }
-
-    return innerMap;
+    return mapify(obj);
   }
   return target;
 };
@@ -48,7 +43,9 @@ export default function useLocalStorageState(key, initialState) {
   try {
     item = mapify(JSON.parse(localStorage.getItem(key)));
     console.log(item);
-  } catch {}
+  } catch (e) {
+    console.error(e);
+  }
 
   const [state, setter] = useState(item instanceof Map ? item : initialState);
 
