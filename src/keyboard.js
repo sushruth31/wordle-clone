@@ -1,3 +1,4 @@
+import { colorMap } from "./grid";
 let row1 = "qwertyuiop";
 let row2 = "asdfghjkl";
 let row3 = "zxcvbnm";
@@ -26,6 +27,7 @@ export default function Keyboard({
               let isEnter = rowI === 2 && ltrI === 0;
               let isDelete = rowI === 2 && ltrI === row.length - 1;
               let color = keyboardColors.get(ltr.toUpperCase());
+              color = colorMap.get(color);
 
               return (
                 <button
@@ -33,11 +35,7 @@ export default function Keyboard({
                   key={ltr}
                   style={{
                     minWidth: 40,
-                    backgroundColor: !color
-                      ? "gray"
-                      : color === "gray"
-                      ? "#4a4a4c"
-                      : color,
+                    backgroundColor: color ?? "gray",
                   }}
                   variant="outlined"
                   onClick={

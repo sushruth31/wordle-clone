@@ -1,14 +1,20 @@
 import { Alert, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Keyboard from "./keyboard";
 import wordList from "word-list-json";
+
+export const colorMap = new Map(
+  Object.entries({
+    green: "#538c4d",
+    orange: "#b59f3a",
+    gray: "#3a3a3c",
+  })
+);
 
 const myWordList = wordList.filter(word => word.length === 5);
 
 const wordOfTheDay = "hello";
 //my word is 'haehjl'
-
-const getKey = (rowI, cellI) => `${rowI} ${cellI}`;
 
 function findColor(ltrI, ltr) {
   let _wordOfTheDay = wordOfTheDay
@@ -59,23 +65,29 @@ function useLocalStorageState(key, initialState) {
 export default function Grid() {
   const [currentSquareinRow, setCurrentSqaureInRow] = useState(-1);
   const [gridMap, setGridMap] = useState(new Map());
-  const [attempts, setAttempts] = useState(new Map());
   const [isGameOver, setIsGameOver] = useState(null);
   const [wordNotInDict, setWordNotInDict] = useState(false);
+  const [currentRow, setCurrentRow] = useState(0);
 
-  let currentRow = attempts.size;
+  //memoize keyboard colors so it doesnt update until row changes
 
-  let keyboardColors = new Map(); //a => color
+  let keyboardColors = useMemo(() => {
+    let map = new Map();
 
-  for (let i = 0; i < attempts.size; ++i) {
-    let row = attempts.get(i);
-    for (let [_, { color, ltr }] of row.entries()) {
-      if (keyboardColors.get(ltr) === "green") {
-        continue;
+    for (let i = 0; i < gridMap.size; ++i) {
+      let row = gridMap.get(i);
+      for (let [_, { color, ltr }] of row.entries()) {
+        if (map.get(ltr) === "green") {
+          continue;
+        }
+        map.set(ltr, color);
       }
-      keyboardColors.set(ltr, color);
     }
-  }
+
+    return map;
+  }, [currentRow]); //a => color
+
+  console.log(keyboardColors);
 
   //gridmap: "0 1" => 'k'
 
@@ -100,12 +112,11 @@ export default function Grid() {
       ltrMap.set(i, { color: findColor(i, ltr), ltr });
     }
 
-    //check if word is a winner
-
-    setAttempts(p => new Map(p).set(currentRow, ltrMap));
+    setGridMap(p => new Map(p).set(currentRow, ltrMap));
 
     //update keybaord colors. if green preserve. anything else overwrite
 
+    //check if word is a winner
     if (isWinner(ltrMap)) {
       return handleWin();
     }
@@ -113,15 +124,12 @@ export default function Grid() {
 
   const handleEnter = () => {
     //first check if we have 5 letters
-    let map = [...gridMap];
+    let row = new Map(gridMap.get(currentRow)); //map(ltrI => {color: green, ltr: a})
     let letters = [];
 
-    for (let i = 0; i < map.length; i++) {
-      let row = Number(map[i][0].split("")[0]);
-      let letter = map[i][1];
-      if (row === currentRow) {
-        letters.push(letter);
-      }
+    for (let i = 0; i < row.size; ++i) {
+      let ltr = row.get(i).ltr;
+      letters.push(ltr);
     }
 
     if (letters.length !== 5) return;
@@ -141,12 +149,19 @@ export default function Grid() {
     addToAttempts(letters);
 
     //go to next row and reset pos to 0
+    setCurrentRow(p => p + 1);
     setCurrentSqaureInRow(-1);
   };
 
-  const mapSet = (rowI, cellI, val) => {
-    setGridMap(new Map(gridMap.set(getKey(rowI, cellI), val)));
-  };
+  function updateGridMap(pos, ltr) {
+    setGridMap(p => {
+      let ltrMap = new Map(p.get(currentRow)); // map (ltri => {color: ...})
+      let objCopy = ltrMap.get(pos);
+      ltrMap.set(pos, { ...objCopy, ltr });
+
+      return new Map(p.set(currentRow, ltrMap));
+    });
+  }
 
   function handleKey(key) {
     if (!key || isGameOver) return;
@@ -157,21 +172,28 @@ export default function Grid() {
     setCurrentSqaureInRow(p => {
       if (p < 4) {
         //update grid map
-        mapSet(currentRow, p + 1, key);
-        return p + 1;
+        let newPos = p + 1;
+        updateGridMap(newPos, key);
+        return newPos;
       } else {
+        return p;
       }
     });
   }
 
   const handleDelete = () => {
     if (currentSquareinRow < 0) return;
-    let mapCopy = new Map([...gridMap]);
-    //delete the current row and cell from the map
-    mapCopy.delete(getKey(currentRow, currentSquareinRow));
+    //todo update grid map
+
+    setGridMap(p => {
+      let mapCopy = new Map(p);
+      let ltrMap = new Map(mapCopy.get(currentRow));
+      ltrMap.delete(currentSquareinRow);
+      return mapCopy.set(currentRow, ltrMap);
+    });
+
     //update our current position
     setCurrentSqaureInRow(p => p - 1);
-    setGridMap(mapCopy);
   };
 
   //clear out message
@@ -199,7 +221,8 @@ export default function Grid() {
         {[...Array(6)].map((_, rowI) => (
           <div key={rowI} className="flex">
             {[...Array(5)].map((_, ltrI) => {
-              let color = attempts.get(rowI)?.get(ltrI)?.color;
+              let color = gridMap.get(rowI)?.get(ltrI)?.color;
+              color = colorMap.get(color);
               return (
                 <div
                   key={ltrI}
@@ -211,7 +234,7 @@ export default function Grid() {
                   }
                 >
                   <Typography color="white" variant="h4">
-                    {gridMap.get(getKey(rowI, ltrI))}
+                    {gridMap.get(rowI)?.get(ltrI)?.ltr}
                   </Typography>
                 </div>
               );
