@@ -47,10 +47,22 @@ export default function Grid() {
   const [currentSquareinRow, setCurrentSqaureInRow] = useState(-1);
   const [gridMap, setGridMap] = useLocalStorageState("gridmap", new Map());
   const [isGameOver, setIsGameOver] = useState(null);
-  const [wordNotInDict, setWordNotInDict] = useState(false);
   const [currentRow, setCurrentRow] = useState(gridMap.size);
+  const [numberOfMessages, setNumberOfMessages] = useState(0);
 
-  //  console.log(gridMap);
+  useEffect(() => {
+    if (!numberOfMessages) return;
+    for (let i = 0; i < numberOfMessages; ++i) {
+      let id = setTimeout(() => {
+        setNumberOfMessages(p => {
+          if (p > 0) {
+            return --p;
+          }
+          return p;
+        });
+      }, 500);
+    }
+  }, [numberOfMessages]);
 
   //memoize keyboard colors so it doesnt update until row changes
 
@@ -72,14 +84,14 @@ export default function Grid() {
 
   //gridmap: "0 1" => 'k'
 
-  function handleWin() {
-    console.log("you win");
-    setIsGameOver({ outcome: "win" });
-  }
-
-  function isWinner(ltrMap) {
-    //if all colors are green return true
-    return [...ltrMap].every(([_, { color }]) => color === "green");
+  function isWinner() {
+    //if all colors are green on last row return true
+    let lastRow = gridMap.get(gridMap.size - 1);
+    if (!gridMap.size) return false;
+    if ([...lastRow.entries()].every(([_, { color }]) => color === "green")) {
+      return true;
+    }
+    return false;
   }
 
   function addToAttempts(enteredWord) {
@@ -94,16 +106,18 @@ export default function Grid() {
     }
 
     setGridMap(p => new Map(p).set(currentRow, ltrMap), true);
-
-    //update keybaord colors. if green preserve. anything else overwrite
-
-    //check if word is a winner
-    if (isWinner(ltrMap)) {
-      return handleWin();
-    }
   }
 
+  useEffect(() => {
+    //check if word is a winner
+    if (isWinner(gridMap)) {
+      console.log("you win");
+      setIsGameOver({ outcome: "You Win!" });
+    }
+  }, [currentRow]);
+
   const handleEnter = () => {
+    if (isGameOver) return;
     //first check if we have 5 letters
     let row = new Map(gridMap.get(currentRow)); //map(ltrI => {color: green, ltr: a})
     let letters = [];
@@ -121,10 +135,9 @@ export default function Grid() {
         word => word.toUpperCase() === letters.join("").toUpperCase()
       )
     ) {
-      console.log("word not in dict");
       //this value is getting set to NaN after some rerenders so just as a precatution
       setCurrentSqaureInRow(4);
-      return setWordNotInDict(true);
+      return setNumberOfMessages(p => ++p);
     }
     //add to attempts
     addToAttempts(letters);
@@ -162,7 +175,7 @@ export default function Grid() {
   }
 
   const handleDelete = () => {
-    if (currentSquareinRow < 0) return;
+    if (currentSquareinRow < 0 || isGameOver) return;
     //todo update grid map
 
     setGridMap(p => {
@@ -177,26 +190,30 @@ export default function Grid() {
   };
 
   //clear out message
-  useEffect(() => {
-    let timeout;
-    if (wordNotInDict) {
-      timeout = setTimeout(() => {
-        setWordNotInDict(false);
-      }, 1000);
-    }
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [wordNotInDict]);
 
   return (
     <>
-      {wordNotInDict && (
-        <Alert icon={false} className="mt-10">
-          <b>Word not in list</b>
+      {isGameOver && (
+        <Alert style={{ zIndex: 5000 }} icon={false} className="fixed top-16">
+          <b>{isGameOver.outcome}</b>
         </Alert>
       )}
+
+      {!!numberOfMessages && (
+        <>
+          {[...Array(numberOfMessages)].map((_, i) => (
+            <Alert
+              className="mb-10"
+              key={i}
+              style={{ zIndex: 5000 }}
+              icon={false}
+            >
+              <b>Word Not In List</b>
+            </Alert>
+          ))}
+        </>
+      )}
+
       <div className="fixed bottom-72">
         {[...Array(6)].map((_, rowI) => (
           <div key={rowI} className="flex">

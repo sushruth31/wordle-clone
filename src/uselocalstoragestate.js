@@ -35,16 +35,13 @@ const mapify = obj => {
   return target;
 };
 
-window.mapify = mapify;
-
 export default function useLocalStorageState(key, initialState) {
   let item;
 
   try {
     item = mapify(JSON.parse(localStorage.getItem(key)));
-    console.log(item);
   } catch (e) {
-    console.error(e);
+    //console.log("no local storage");
   }
 
   const [state, setter] = useState(item instanceof Map ? item : initialState);
