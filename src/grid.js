@@ -36,6 +36,26 @@ function findColor(ltrI, ltr) {
 const handleKeyWrapper = fn => keyEvent =>
   fn(keyEvent.target.innerText.toUpperCase());
 
+function useLocalStorageState(key, initialState) {
+  const [state, setter] = useState(
+    JSON.parse(localStorage.getItem(key)) || initialState
+  );
+  console.log(state);
+
+  const newSetter = newValOrCb => {
+    setter(state => {
+      let newState = state;
+      if (typeof newValOrCb === "function") {
+        newState = newValOrCb(state);
+      }
+      localStorage.setItem(key, JSON.stringify(newState));
+      return newState;
+    });
+  };
+
+  return [state, newSetter];
+}
+
 export default function Grid() {
   const [currentSquareinRow, setCurrentSqaureInRow] = useState(-1);
   const [gridMap, setGridMap] = useState(new Map());
@@ -56,8 +76,6 @@ export default function Grid() {
       keyboardColors.set(ltr, color);
     }
   }
-
-  console.log(keyboardColors);
 
   //gridmap: "0 1" => 'k'
 
