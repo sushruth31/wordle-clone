@@ -1,6 +1,7 @@
 import { Alert, Typography } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import Keyboard from "./keyboard";
+import useLocalStorageState from "./uselocalstoragestate";
 import wordList from "word-list-json";
 
 export const colorMap = new Map(
@@ -42,32 +43,14 @@ function findColor(ltrI, ltr) {
 const handleKeyWrapper = fn => keyEvent =>
   fn(keyEvent.target.innerText.toUpperCase());
 
-function useLocalStorageState(key, initialState) {
-  const [state, setter] = useState(
-    JSON.parse(localStorage.getItem(key)) || initialState
-  );
-  console.log(state);
-
-  const newSetter = newValOrCb => {
-    setter(state => {
-      let newState = state;
-      if (typeof newValOrCb === "function") {
-        newState = newValOrCb(state);
-      }
-      localStorage.setItem(key, JSON.stringify(newState));
-      return newState;
-    });
-  };
-
-  return [state, newSetter];
-}
-
 export default function Grid() {
   const [currentSquareinRow, setCurrentSqaureInRow] = useState(-1);
-  const [gridMap, setGridMap] = useState(new Map());
+  const [gridMap, setGridMap] = useLocalStorageState("gridmap", new Map());
   const [isGameOver, setIsGameOver] = useState(null);
   const [wordNotInDict, setWordNotInDict] = useState(false);
-  const [currentRow, setCurrentRow] = useState(0);
+  const [currentRow, setCurrentRow] = useState(gridMap.size);
+
+  //  console.log(gridMap);
 
   //memoize keyboard colors so it doesnt update until row changes
 
@@ -86,8 +69,6 @@ export default function Grid() {
 
     return map;
   }, [currentRow]); //a => color
-
-  console.log(keyboardColors);
 
   //gridmap: "0 1" => 'k'
 
@@ -112,7 +93,7 @@ export default function Grid() {
       ltrMap.set(i, { color: findColor(i, ltr), ltr });
     }
 
-    setGridMap(p => new Map(p).set(currentRow, ltrMap));
+    setGridMap(p => new Map(p).set(currentRow, ltrMap), true);
 
     //update keybaord colors. if green preserve. anything else overwrite
 
@@ -175,9 +156,8 @@ export default function Grid() {
         let newPos = p + 1;
         updateGridMap(newPos, key);
         return newPos;
-      } else {
-        return p;
       }
+      return p;
     });
   }
 
