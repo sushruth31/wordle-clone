@@ -114,6 +114,10 @@ export default function Grid() {
       console.log("you win");
       setIsGameOver({ outcome: "You Win!" });
     }
+
+    if (gridMap.size === 6) {
+      setIsGameOver({ outcome: "You Suck!" });
+    }
   }, [currentRow]);
 
   const handleEnter = () => {
@@ -188,8 +192,6 @@ export default function Grid() {
     //update our current position
     setCurrentSqaureInRow(p => p - 1);
   };
-
-  //clear out message
 
   return (
     <>
