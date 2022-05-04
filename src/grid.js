@@ -114,7 +114,7 @@ export default function Grid() {
         let mapCopy = new Map(p);
         return mapCopy.set(currentRow, mapCopy.get(currentRow).set(i, o));
       }, i === ltrMap.size - 1);
-      await delay(500);
+      await delay(200);
     }
 
     //add one letter at a time
