@@ -49,6 +49,7 @@ export default function Grid() {
   const [isGameOver, setIsGameOver] = useState(null);
   const [currentRow, setCurrentRow] = useState(gridMap.size);
   const [numberOfMessages, setNumberOfMessages] = useState(0);
+  const [isRendering, setIsRendering] = useState(false);
 
   useEffect(() => {
     if (!numberOfMessages) return;
@@ -56,7 +57,7 @@ export default function Grid() {
       let id = setTimeout(() => {
         setNumberOfMessages(p => {
           if (p > 0) {
-            return --p;
+            return p - 1;
           }
           return p;
         });
@@ -94,7 +95,9 @@ export default function Grid() {
     return false;
   }
 
-  function addToAttempts(enteredWord) {
+  const delay = time => new Promise(resolve => setTimeout(resolve, time));
+
+  async function addToAttempts(enteredWord) {
     //add the attempt to the attempts map
     //attemptsMap: 0 => map(ltrIdx: {color: green, ltr: 'a'})
     let ltrMap = new Map();
@@ -105,7 +108,16 @@ export default function Grid() {
       ltrMap.set(i, { color: findColor(i, ltr), ltr });
     }
 
-    setGridMap(p => new Map(p).set(currentRow, ltrMap), true);
+    for (let i = 0; i < ltrMap.size; ++i) {
+      let o = ltrMap.get(i);
+      setGridMap(p => {
+        let mapCopy = new Map(p);
+        return mapCopy.set(currentRow, mapCopy.get(currentRow).set(i, o));
+      }, i === ltrMap.size - 1);
+      await delay(500);
+    }
+
+    //add one letter at a time
   }
 
   useEffect(() => {
@@ -120,8 +132,9 @@ export default function Grid() {
     }
   }, [currentRow]);
 
-  const handleEnter = () => {
-    if (isGameOver) return;
+  const handleEnter = async () => {
+    if (isGameOver || isRendering) return;
+    setIsRendering(true);
     //first check if we have 5 letters
     let row = new Map(gridMap.get(currentRow)); //map(ltrI => {color: green, ltr: a})
     let letters = [];
@@ -141,14 +154,15 @@ export default function Grid() {
     ) {
       //this value is getting set to NaN after some rerenders so just as a precatution
       setCurrentSqaureInRow(4);
-      return setNumberOfMessages(p => ++p);
+      return setNumberOfMessages(p => p + 1);
     }
     //add to attempts
-    addToAttempts(letters);
+    await addToAttempts(letters);
 
     //go to next row and reset pos to 0
     setCurrentRow(p => p + 1);
     setCurrentSqaureInRow(-1);
+    setIsRendering(false);
   };
 
   function updateGridMap(pos, ltr) {
@@ -162,7 +176,7 @@ export default function Grid() {
   }
 
   function handleKey(key) {
-    if (!key || isGameOver) return;
+    if (!key || isGameOver || isRendering) return;
 
     //filter out anything not a letter
     if (!isNaN(Number(key)) || key.length !== 1 || !key.match(/[a-z]/i)) return;
@@ -179,7 +193,7 @@ export default function Grid() {
   }
 
   const handleDelete = () => {
-    if (currentSquareinRow < 0 || isGameOver) return;
+    if (currentSquareinRow < 0 || isGameOver || isRendering) return;
     //todo update grid map
 
     setGridMap(p => {
