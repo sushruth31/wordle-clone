@@ -3,6 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import Keyboard from "./keyboard";
 import useLocalStorageState from "./uselocalstoragestate";
 import wordList from "word-list-json";
+import { AnimatePresence, motion } from "framer-motion";
+
+const delay = time => new Promise(resolve => setTimeout(resolve, time));
 
 export const colorMap = new Map(
   Object.entries({
@@ -50,6 +53,8 @@ export default function Grid() {
   const [currentRow, setCurrentRow] = useState(gridMap.size);
   const [numberOfMessages, setNumberOfMessages] = useState(0);
   const [isRendering, setIsRendering] = useState(false);
+  const [rowWithError, setErrorRow] = useState(null);
+  const [squareAnimating, setSquareAnimating] = useState(new Map());
 
   useEffect(() => {
     if (!numberOfMessages) return;
@@ -64,6 +69,17 @@ export default function Grid() {
       }, 500);
     }
   }, [numberOfMessages]);
+
+  useEffect(() => {
+    //clear out errors and check all rows just to be safe
+    for (let i = 0; i < gridMap.size; ++i) {
+      if (i === rowWithError) {
+        setTimeout(() => {
+          setErrorRow(null);
+        }, 500);
+      }
+    }
+  }, [rowWithError]);
 
   //memoize keyboard colors so it doesnt update until row changes
 
@@ -87,15 +103,13 @@ export default function Grid() {
 
   function isWinner() {
     //if all colors are green on last row return true
-    let lastRow = gridMap.get(gridMap.size - 1);
     if (!gridMap.size) return false;
+    let lastRow = gridMap.get(gridMap.size - 1);
     if ([...lastRow.entries()].every(([_, { color }]) => color === "green")) {
       return true;
     }
     return false;
   }
-
-  const delay = time => new Promise(resolve => setTimeout(resolve, time));
 
   async function addToAttempts(enteredWord) {
     //add the attempt to the attempts map
@@ -108,17 +122,22 @@ export default function Grid() {
       ltrMap.set(i, { color: findColor(i, ltr), ltr });
     }
 
+    //add one letter at a time
     for (let i = 0; i < ltrMap.size; ++i) {
       let o = ltrMap.get(i);
       setGridMap(p => {
         let mapCopy = new Map(p);
         return mapCopy.set(currentRow, mapCopy.get(currentRow).set(i, o));
       }, i === ltrMap.size - 1);
+      setSquareAnimating(new Map().set(currentRow, i));
       await delay(200);
     }
 
-    //add one letter at a time
+    setSquareAnimating(new Map());
+    //clear squares animating out
   }
+
+  //as effect so it can run on mount
 
   useEffect(() => {
     //check if word is a winner
@@ -133,8 +152,6 @@ export default function Grid() {
   }, [currentRow]);
 
   const handleEnter = async () => {
-    if (isGameOver || isRendering) return;
-    setIsRendering(true);
     //first check if we have 5 letters
     let row = new Map(gridMap.get(currentRow)); //map(ltrI => {color: green, ltr: a})
     let letters = [];
@@ -144,7 +161,7 @@ export default function Grid() {
       letters.push(ltr);
     }
 
-    if (letters.length !== 5) return;
+    if (isGameOver || isRendering || letters.length !== 5) return;
 
     //check if word is in dict
     if (
@@ -154,8 +171,10 @@ export default function Grid() {
     ) {
       //this value is getting set to NaN after some rerenders so just as a precatution
       setCurrentSqaureInRow(4);
+      setErrorRow(currentRow);
       return setNumberOfMessages(p => p + 1);
     }
+    setIsRendering(true);
     //add to attempts
     await addToAttempts(letters);
 
@@ -232,24 +251,29 @@ export default function Grid() {
 
       <div className="fixed bottom-72">
         {[...Array(6)].map((_, rowI) => (
-          <div key={rowI} className="flex">
+          <div
+            key={rowI}
+            style={{ display: "flex" }}
+            className={rowI === rowWithError ? "shake" : ""}
+          >
             {[...Array(5)].map((_, ltrI) => {
-              let color = gridMap.get(rowI)?.get(ltrI)?.color;
-              color = colorMap.get(color);
+              let color = colorMap.get(gridMap.get(rowI)?.get(ltrI)?.color);
+              let ltr = gridMap.get(rowI)?.get(ltrI)?.ltr;
               return (
-                <div
+                <Square
+                  isAnimating={squareAnimating.get(rowI) === ltrI}
                   key={ltrI}
                   style={{
                     backgroundColor: color === "gray" ? "transparent" : color,
                   }}
                   className={
-                    "border-[1px] m-1 border-gray-500 h-[60px] w-[60px] flex items-center justify-center"
+                    "border-[1px] m-1 h-[60px] border-gray-500 w-[60px] flex items-center justify-center"
                   }
                 >
                   <Typography color="white" variant="h4">
-                    {gridMap.get(rowI)?.get(ltrI)?.ltr}
+                    {ltr}
                   </Typography>
-                </div>
+                </Square>
               );
             })}
           </div>
@@ -261,6 +285,28 @@ export default function Grid() {
         handleDelete={handleDelete}
         handleKey={handleKeyWrapper(handleKey)}
       />
+    </>
+  );
+}
+
+function Square({ isRendering, children, isAnimating, ...props }) {
+  return (
+    <>
+      {isAnimating ? (
+        <AnimatePresence>
+          <motion.div
+            key="modal"
+            {...props}
+            initial={{ y: 300, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -300, opacity: 0 }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      ) : (
+        <div {...props}>{children}</div>
+      )}
     </>
   );
 }
