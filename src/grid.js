@@ -49,14 +49,18 @@ const handleKeyWrapper = fn => keyEvent =>
 export default function Grid({ gridMap, setGridMap }) {
   const [currentSquareinRow, setCurrentSqaureInRow] = useState(-1);
   const [isGameOver, setIsGameOver] = useState(null);
-  const [currentRow, setCurrentRow] = useState(gridMap.size);
+  const [currentRow, setCurrentRow] = useState(null);
   const [numberOfMessages, setNumberOfMessages] = useState(0);
   const [isRendering, setIsRendering] = useState(false);
   const [isError, setError] = useState(false);
   const [squareAnimating, setSquareAnimating] = useState(new Map());
 
+  //set current row asynchronously to delay keyboard colors
+
   useEffect(() => {
-    if (!gridMap.size) return;
+    if (!gridMap.size) {
+      return setCurrentRow(gridMap.size);
+    }
     setIsRendering(true);
     //iterate through map setting animating squares and store in local gridmap state
     //squares animating should be
@@ -68,11 +72,12 @@ export default function Grid({ gridMap, setGridMap }) {
       }
       setSquareAnimating(map);
       await delay(200);
-      populateMap(++columnI);
+      await populateMap(++columnI);
     }
 
     (async () => {
       await populateMap(0);
+      setCurrentRow(gridMap.size);
       setIsRendering(false);
     })();
   }, []);
@@ -102,7 +107,7 @@ export default function Grid({ gridMap, setGridMap }) {
 
   let keyboardColors = useMemo(() => {
     let map = new Map();
-
+    if (currentRow === null) return new Map();
     for (let i = 0; i < gridMap.size; ++i) {
       let row = gridMap.get(i);
       for (let [_, { color, ltr }] of row.entries()) {
