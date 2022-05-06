@@ -1,34 +1,43 @@
 import AppBar from "@mui/material/AppBar";
-import RestartAltIcon from "@mui/icons-material/RestartAlt";
-import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
+import {
+  Settings,
+  BarChart,
+  HelpOutline,
+  RestartAlt,
+} from "@mui/icons-material";
+import { Box, Toolbar, Typography, Button, IconButton } from "@mui/material";
 
-export default function Header() {
+export default function Header({ clear, openCover }) {
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
-        <Toolbar className="bg-[#111313]">
+        <Toolbar className="bg-[#111313] border border-b-gray-600 border-[#111313]">
+          <IconButton onClick={clear} size="large" edge="start" sx={{ mr: 2 }}>
+            <RestartAlt className="text-white" />
+          </IconButton>
           <IconButton
-            onClick={() => localStorage.clear()}
+            onClick={openCover}
             size="large"
             edge="start"
             sx={{ mr: 2 }}
           >
-            <RestartAltIcon className="text-white" />
+            <HelpOutline className="text-white" />
           </IconButton>
           <div className="w-full flex items-center justify-center">
             <Typography
               className="text-white font-bold"
-              variant="h5"
+              variant="h4"
               component="div"
             >
-              Wordle
+              <b>Wordle</b>
             </Typography>
           </div>
-          <Button color="inherit">Login</Button>
+          <IconButton size="large">
+            <BarChart className="text-white" />
+          </IconButton>
+          <IconButton size="large">
+            <Settings className="text-white" />
+          </IconButton>
         </Toolbar>
       </AppBar>
     </Box>

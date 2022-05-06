@@ -35,7 +35,7 @@ const mapify = obj => {
   return target;
 };
 
-export default function useLocalStorageState(key, initialState) {
+export default function useLocalStorageState(key, initialState, fn) {
   let item;
 
   try {
@@ -51,6 +51,14 @@ export default function useLocalStorageState(key, initialState) {
     localStorage.setItem(key, item);
   };
 
+  const clear = () => {
+    setter(new Map());
+    localStorage.removeItem(key);
+    if (typeof fn === "function") {
+      fn();
+    }
+  };
+
   const newSetter = (newValOrCb, store) => {
     setter(state => {
       let newState = state;
@@ -62,5 +70,5 @@ export default function useLocalStorageState(key, initialState) {
     });
   };
 
-  return [state, newSetter];
+  return [state, newSetter, clear];
 }
