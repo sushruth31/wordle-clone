@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react"
 import Keyboard from "./keyboard"
 import wordList from "word-list-json"
 import Animater from "./animater"
-import { useDispatch } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
+import { addNumPlayed } from "./redux"
 
 const delay = time => new Promise(resolve => setTimeout(resolve, time))
 
@@ -55,6 +56,7 @@ export default function Grid({ gridMap, setGridMap }) {
   const [isError, setError] = useState(false)
   const [squareAnimating, setSquareAnimating] = useState(new Map())
   const dispatch = useDispatch()
+  const numPlayed = useSelector(state => state.stats.numPlayed)
 
   //set current row asynchronously to delay keyboard colors
 
@@ -162,8 +164,7 @@ export default function Grid({ gridMap, setGridMap }) {
 
   //save stuff on game over
   useEffect(() => {
-    if (isGameOver) {
-      console.log("some outcome")
+    if (isGameOver?.outcome) {
     }
   }, [isGameOver])
   //as effect so it can run on mount
@@ -259,6 +260,10 @@ export default function Grid({ gridMap, setGridMap }) {
 
   return (
     <>
+      <button onClick={() => dispatch(addNumPlayed())} className="text-white">
+        Hello
+      </button>
+      <div className="text-white">Count: {numPlayed}</div>
       {isGameOver && (
         <Alert style={{ zIndex: 5000 }} icon={false} className="fixed top-16">
           <b>{isGameOver.outcome}</b>

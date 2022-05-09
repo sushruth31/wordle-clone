@@ -1,9 +1,19 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { getSavedData } from "../uselocalstoragestate"
 
+const defaultState = {
+  numPlayed: 0,
+}
+
+const simpleGetter = (slice, prop) => {
+  return (
+    getSavedData("state", defaultState, false)?.[slice][prop] ??
+    defaultState[prop]
+  )
+}
+
 const initialState = {
-  numPlayed:
-    getSavedData("stats", [], false)?.find(el => el.type === "numPlayed") ?? 0,
+  numPlayed: simpleGetter("stats", "numPlayed"),
 }
 
 export const statsSlice = createSlice({
@@ -11,12 +21,17 @@ export const statsSlice = createSlice({
   initialState,
   reducers: {
     addNumPlayed: state => {
-      state.numPlayed++
-      localStorage.setItem("stats", state.numPlayed)
+      state.numPlayed = Number(state.numPlayed) + 1
+    },
+    resetStats: state => {
+      state = defaultState
     },
   },
 })
 
-export const { saveStat } = statsSlice.actions
+export const { resetStats, addNumPlayed } = statsSlice.actions
+
+//selectors
+export const getNumPlayed = state => state.stats.numPlayed
 
 export default statsSlice.reducer
