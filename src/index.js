@@ -10,6 +10,7 @@ document.body.style = "background: #131214"
 window.store = store
 
 function saveData(state) {
+  //TODO: debounce
   localStorage.setItem("state", JSON.stringify(state))
 }
 
