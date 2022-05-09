@@ -1,11 +1,12 @@
-import AppBar from "@mui/material/AppBar";
+import AppBar from "@mui/material/AppBar"
 import {
   Settings,
   BarChart,
   HelpOutline,
   RestartAlt,
-} from "@mui/icons-material";
-import { Box, Toolbar, Typography, Button, IconButton } from "@mui/material";
+} from "@mui/icons-material"
+import { Box, Toolbar, Typography, Button, IconButton } from "@mui/material"
+import { SCREENTYPES } from "./App"
 
 export default function Header({ clear, openCover }) {
   return (
@@ -16,7 +17,10 @@ export default function Header({ clear, openCover }) {
             <RestartAlt className="text-white" />
           </IconButton>
           <IconButton
-            onClick={openCover}
+            onClick={openCover({
+              coverOrModal: "cover",
+              screen: SCREENTYPES.INSTRUCTIONS,
+            })}
             size="large"
             edge="start"
             sx={{ mr: 2 }}
@@ -33,7 +37,13 @@ export default function Header({ clear, openCover }) {
             </Typography>
           </div>
           <IconButton size="large">
-            <BarChart className="text-white" />
+            <BarChart
+              onClick={openCover({
+                coverOrModal: "modal",
+                screen: SCREENTYPES.STATS,
+              })}
+              className="text-white"
+            />
           </IconButton>
           <IconButton size="large">
             <Settings className="text-white" />
@@ -41,5 +51,5 @@ export default function Header({ clear, openCover }) {
         </Toolbar>
       </AppBar>
     </Box>
-  );
+  )
 }
