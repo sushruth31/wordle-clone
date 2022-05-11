@@ -4,8 +4,11 @@ import { useEffect, useMemo, useState } from "react"
 import Keyboard from "./keyboard"
 import wordList from "word-list-json"
 import Animater from "./animater"
-import { useDispatch, useSelector } from "react-redux"
+import { useDispatch } from "react-redux"
 import { addNumPlayed } from "./redux"
+
+const NUM_ROWS = 6
+const NUM_COLS = 5
 
 const delay = time => new Promise(resolve => setTimeout(resolve, time))
 
@@ -17,7 +20,7 @@ export const colorMap = new Map(
   })
 )
 
-const myWordList = wordList.filter(word => word.length === 5)
+const myWordList = wordList.filter(word => word.length === NUM_COLS)
 
 const wordOfTheDay = "hello"
 
@@ -56,7 +59,6 @@ export default function Grid({ gridMap, setGridMap }) {
   const [isError, setError] = useState(false)
   const [squareAnimating, setSquareAnimating] = useState(new Map())
   const dispatch = useDispatch()
-  const numPlayed = useSelector(state => state.stats.numPlayed)
 
   //set current row asynchronously to delay keyboard colors
 
@@ -126,10 +128,11 @@ export default function Grid({ gridMap, setGridMap }) {
 
   //gridmap: "0 1" => 'k'
 
-  function isWinner() {
+  function isWinner(optionalMap) {
+    let map = optionalMap instanceof Map ? optionalMap : gridMap
     //if all colors are green on last row return true
-    if (!gridMap.size) return false
-    let lastRow = gridMap.get(gridMap.size - 1)
+    if (!map.size) return false
+    let lastRow = map.get(map.size - 1)
     if ([...lastRow.entries()].every(([_, { color }]) => color === "green")) {
       return true
     }
@@ -138,6 +141,7 @@ export default function Grid({ gridMap, setGridMap }) {
 
   async function addToAttempts(enteredWord) {
     //add the attempt to the attempts map
+    //return an updated map
     //attemptsMap: 0 => map(ltrIdx: {color: green, ltr: 'a'})
     let ltrMap = new Map()
     //add the colors for each ltr in map
@@ -160,23 +164,19 @@ export default function Grid({ gridMap, setGridMap }) {
 
     setSquareAnimating(new Map())
     //clear squares animating out
+    return gridMap.set(currentRow, ltrMap)
   }
 
-  //save stuff on game over
-  useEffect(() => {
-    if (isGameOver?.outcome) {
-    }
-  }, [isGameOver])
   //as effect so it can run on mount
 
   useEffect(() => {
     //check if word is a winner
-    if (isWinner(gridMap)) {
+    if (isWinner()) {
       console.log("you win")
       setIsGameOver({ outcome: "You Win!" })
     }
 
-    if (gridMap.size === 6) {
+    if (gridMap.size === NUM_ROWS) {
       setIsGameOver({
         outcome: `You Suck! Word: ${wordOfTheDay.toUpperCase()} `,
       })
@@ -202,13 +202,18 @@ export default function Grid({ gridMap, setGridMap }) {
       )
     ) {
       //this value is getting set to NaN after some rerenders so just as a precatution
-      setCurrentSqaureInRow(4)
+      setCurrentSqaureInRow(NUM_COLS - 1)
       setError(true)
       return setNumberOfMessages(p => p + 1)
     }
     setIsRendering(true)
     //add to attempts
-    await addToAttempts(letters)
+    let updatedMap = await addToAttempts(letters)
+
+    //if we are on last row dispatch to num played
+    if (currentRow === NUM_ROWS - 1 || isWinner(updatedMap)) {
+      dispatch(addNumPlayed())
+    }
 
     //go to next row and reset pos to 0
     setCurrentRow(p => p + 1)
@@ -260,10 +265,6 @@ export default function Grid({ gridMap, setGridMap }) {
 
   return (
     <>
-      <button onClick={() => dispatch(addNumPlayed())} className="text-white">
-        Hello
-      </button>
-      <div className="text-white">Count: {numPlayed}</div>
       {isGameOver && (
         <Alert style={{ zIndex: 5000 }} icon={false} className="fixed top-16">
           <b>{isGameOver.outcome}</b>
@@ -286,15 +287,17 @@ export default function Grid({ gridMap, setGridMap }) {
           ))}
         </>
       )}
-
+      <button onClick={() => dispatch(addNumPlayed())} className="text-white">
+        Hello
+      </button>
       <div className="fixed top-[50%] left-[50%] -mt-[300px] -ml-[170px]">
-        {[...Array(6)].map((_, rowI) => (
+        {[...Array(NUM_ROWS)].map((_, rowI) => (
           <div
             key={rowI}
             style={{ display: "flex" }}
             className={isError && rowI === currentRow ? "shake" : ""}
           >
-            {[...Array(5)].map((_, ltrI) => {
+            {[...Array(NUM_COLS)].map((_, ltrI) => {
               let color = colorMap.get(gridMap.get(rowI)?.get(ltrI)?.color)
               let ltr = gridMap.get(rowI)?.get(ltrI)?.ltr
               return (

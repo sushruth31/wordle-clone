@@ -3,28 +3,32 @@ import { getSavedData } from "../uselocalstoragestate"
 
 const defaultState = {
   numPlayed: 0,
+  someOtherStat: 0,
 }
 
-const simpleGetter = (slice, prop) => {
-  return (
-    getSavedData("state", defaultState, false)?.[slice][prop] ??
-    defaultState[prop]
-  )
-}
+//go through each key and try to retrieve from localstore in state obj.
+function rehydrateState() {
+  let target = { ...defaultState }
+  for (let key in defaultState) {
+    let newVal = getSavedData("state", undefined, false)?.stats?.[key]
+    if (newVal) {
+      target[key] = newVal
+    }
+  }
 
-const initialState = {
-  numPlayed: simpleGetter("stats", "numPlayed"),
+  return target
 }
 
 export const statsSlice = createSlice({
   name: "stats",
-  initialState,
+  initialState: rehydrateState(),
   reducers: {
     addNumPlayed: state => {
       state.numPlayed = Number(state.numPlayed) + 1
     },
     resetStats: state => {
-      state = defaultState
+      state.numPlayed = 0
+      state.someOtherStat = 0
     },
   },
 })

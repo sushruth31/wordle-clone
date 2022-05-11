@@ -6,16 +6,7 @@ import { store } from "./redux"
 import { Provider } from "react-redux"
 
 document.body.style = "background: #131214"
-
-window.store = store
-
-function saveData(state) {
-  //TODO: debounce
-  localStorage.setItem("state", JSON.stringify(state))
-}
-
-//update local storage
-store.subscribe(() => saveData(store.getState()))
+window.store = store //debugging
 
 const root = ReactDOM.createRoot(document.getElementById("root"))
 root.render(
