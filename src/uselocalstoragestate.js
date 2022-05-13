@@ -2,18 +2,16 @@ import { useState } from "react"
 
 const isItANum = str => !isNaN(str)
 
-const objectify = map => {
+export const deepClone = (o, f = v => v) => {
   let target = {}
-  if (map instanceof Map) {
-    map = Object.fromEntries(map)
-  }
+  o = o instanceof Map ? Object.fromEntries(o) : o
 
-  for (let key of Object.keys(map)) {
-    let val = map[key]
+  for (let key of Object.keys(o)) {
+    let val = o[key]
     if (typeof val === "object") {
-      target[key] = objectify(val)
+      target[key] = f(deepClone(val), key)
     } else {
-      target[key] = val
+      target[key] = f(val, key)
     }
   }
   return target
@@ -52,7 +50,7 @@ export default function useLocalStorageState(key, initialState, fn) {
   const [state, setter] = useState(() => getSavedData(key, initialState))
 
   const storeItem = item => {
-    item = JSON.stringify(objectify(item))
+    item = JSON.stringify(deepClone(item))
     localStorage.setItem(key, item)
   }
 
