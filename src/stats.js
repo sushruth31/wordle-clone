@@ -1,6 +1,6 @@
 import { Button, Paper, Typography } from "@mui/material"
 import { useSelector, useDispatch } from "react-redux"
-import { resetStats } from "./redux"
+import { actions } from "./redux"
 import { useAction } from "./utils"
 
 function Card({ children }) {
@@ -41,7 +41,7 @@ function StatCard({ top, bottom }) {
 export default function Stats() {
   const numPlayed = useSelector(state => state.stats.numPlayed)
   const numWins = useSelector(state => state.stats.wins)
-  const reset = useAction(resetStats)
+  const reset = useAction(actions.resetStats)
   return (
     <>
       <div className="h-40 flex p-10">

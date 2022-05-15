@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState, useRef, createElement } from "react"
 import Keyboard from "./keyboard"
 import wordList from "word-list-json"
 import Animater from "./animater"
-import { useDispatch } from "react-redux"
-import { addNumPlayed, addWin } from "./redux"
+import { useAction } from "./utils"
+import { actions } from "./redux"
 
 const NUM_ROWS = 6
 const NUM_COLS = 5
@@ -57,7 +57,8 @@ export default function Grid({ gridMap, setGridMap }) {
   const [isRendering, setIsRendering] = useState(false)
   const [isError, setError] = useState(false)
   const [squareAnimating, setSquareAnimating] = useState(new Map())
-  const dispatch = useDispatch()
+  const addNumPlayed = useAction(actions.addNumPlayed)
+  const addWin = useAction(actions.addWin)
   const timeouts = useRef([])
 
   useEffect(() => {
@@ -207,12 +208,12 @@ export default function Grid({ gridMap, setGridMap }) {
 
     //if we are on last row dispatch to num played
     if (currentRow === NUM_ROWS - 1) {
-      dispatch(addNumPlayed())
+      addNumPlayed()
     }
 
     if (isWinner(updatedMap)) {
-      dispatch(addNumPlayed())
-      dispatch(addWin())
+      addNumPlayed()
+      addWin()
     }
 
     //go to next row and reset pos to 0
@@ -288,7 +289,7 @@ export default function Grid({ gridMap, setGridMap }) {
           ))}
         </div>
       )}
-      <button onClick={() => dispatch(addWin())} className="text-white">
+      <button onClick={addWin} className="text-white">
         Hello
       </button>
       <div className="">
