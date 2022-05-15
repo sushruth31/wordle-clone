@@ -1,3 +1,5 @@
+import { useDispatch } from "react-redux"
+
 export const promisify =
   f =>
   (...args) =>
@@ -10,6 +12,11 @@ export const asyncStorage = {
   async setItem(...args) {
     promisify(localStorage.setItem.bind(localStorage))(...args)
   },
+}
+
+export function useAction(action) {
+  const dispatch = useDispatch()
+  return () => dispatch(action())
 }
 
 export const deepClone = (o, f = v => v) => {

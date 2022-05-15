@@ -8,7 +8,7 @@ export default function RenderChildren({ modalState, closeModal }) {
     case SCREENTYPES.INSTRUCTIONS:
       return (
         <>
-          <div className="flex items-center w-screen mb-6 justify-between px-10">
+          <div className="flex items-center w-screen mt-16 justify-between px-10">
             <div></div>
             <div className="text-white text-lg">
               <b>HOW TO PLAY</b>

@@ -1,6 +1,5 @@
-import * as React from "react"
 import { Alert, Typography } from "@mui/material"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef, createElement } from "react"
 import Keyboard from "./keyboard"
 import wordList from "word-list-json"
 import Animater from "./animater"
@@ -59,9 +58,16 @@ export default function Grid({ gridMap, setGridMap }) {
   const [isError, setError] = useState(false)
   const [squareAnimating, setSquareAnimating] = useState(new Map())
   const dispatch = useDispatch()
+  const timeouts = useRef([])
+
+  useEffect(() => {
+    if (!numberOfMessages) {
+      timeouts.current = timeouts.current.filter(clearTimeout)
+    }
+    console.log(timeouts.current)
+  }, [numberOfMessages])
 
   //set current row asynchronously to delay keyboard colors
-
   useEffect(() => {
     if (!gridMap.size) {
       return setCurrentRow(gridMap.size)
@@ -86,20 +92,6 @@ export default function Grid({ gridMap, setGridMap }) {
       setIsRendering(false)
     })()
   }, [])
-
-  useEffect(() => {
-    if (!numberOfMessages) return
-    for (let i = 0; i < numberOfMessages; ++i) {
-      let id = setTimeout(() => {
-        setNumberOfMessages(p => {
-          if (p > 0) {
-            return p - 1
-          }
-          return p
-        })
-      }, 800)
-    }
-  }, [numberOfMessages])
 
   useEffect(() => {
     //clear out errors and check all rows just to be safe
@@ -164,7 +156,7 @@ export default function Grid({ gridMap, setGridMap }) {
 
     setSquareAnimating(new Map())
     //clear squares animating out
-    return gridMap.set(currentRow, ltrMap)
+    return new Map(gridMap).set(currentRow, ltrMap)
   }
 
   //as effect so it can run on mount
@@ -204,7 +196,10 @@ export default function Grid({ gridMap, setGridMap }) {
       //this value is getting set to NaN after some rerenders so just as a precatution
       setCurrentSqaureInRow(NUM_COLS - 1)
       setError(true)
-      return setNumberOfMessages(p => p + 1)
+      setNumberOfMessages(p => p + 1)
+      return timeouts.current.push(
+        setTimeout(() => setNumberOfMessages(p => p - 1), 1000)
+      )
     }
     setIsRendering(true)
     //add to attempts
@@ -277,20 +272,21 @@ export default function Grid({ gridMap, setGridMap }) {
       )}
 
       {!!numberOfMessages && (
-        <>
+        <div className="flex flex-col fixed top-10">
           {[...Array(numberOfMessages)].map((_, i) => (
             <Animater
+              key={i}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              style={{ zIndex: 5000 }}
+              style={{ marginTop: 20, zIndex: 5000 }}
             >
-              <Alert className="mb-10" key={i} icon={false}>
+              <Alert key={i} icon={false}>
                 <b>Word Not In List</b>
               </Alert>
             </Animater>
           ))}
-        </>
+        </div>
       )}
       <button onClick={() => dispatch(addWin())} className="text-white">
         Hello
@@ -341,12 +337,6 @@ export default function Grid({ gridMap, setGridMap }) {
 
 function Square({ isRendering, children, isAnimating, ...props }) {
   return (
-    <>
-      {React.createElement(
-        isAnimating ? Animater : "div",
-        { ...props },
-        children
-      )}
-    </>
+    <>{createElement(isAnimating ? Animater : "div", { ...props }, children)}</>
   )
 }
