@@ -3,13 +3,12 @@ import { useEffect, useMemo, useState, useRef, createElement } from "react"
 import Keyboard from "./keyboard"
 import wordList from "word-list-json"
 import Animater from "./animater"
-import { useAction } from "./utils"
+import { useAction, shuffle, delay, findRandomWord } from "./utils"
 import { actions } from "./redux"
 
 const NUM_ROWS = 6
 const NUM_COLS = 5
-
-const delay = time => new Promise(resolve => setTimeout(resolve, time))
+const myWordList = shuffle(wordList.filter(word => word.length === NUM_COLS))
 
 export const colorMap = new Map(
   Object.entries({
@@ -19,11 +18,9 @@ export const colorMap = new Map(
   })
 )
 
-const myWordList = wordList.filter(word => word.length === NUM_COLS)
+//needs to be a function of current day
 
-const wordOfTheDay = "hello"
-
-function findColor(ltrI, ltr) {
+function findColor(ltrI, ltr, wordOfTheDay) {
   let _wordOfTheDay = wordOfTheDay
     .split("")
     .map(el => el.toUpperCase())
@@ -60,12 +57,12 @@ export default function Grid({ gridMap, setGridMap }) {
   const addNumPlayed = useAction(actions.addNumPlayed)
   const addWin = useAction(actions.addWin)
   const timeouts = useRef([])
+  const wordOfTheDay = findRandomWord(myWordList)
 
   useEffect(() => {
     if (!numberOfMessages) {
       timeouts.current = timeouts.current.filter(clearTimeout)
     }
-    console.log(timeouts.current)
   }, [numberOfMessages])
 
   //set current row asynchronously to delay keyboard colors
@@ -141,7 +138,7 @@ export default function Grid({ gridMap, setGridMap }) {
 
     for (let i = 0; i < enteredWord.length; ++i) {
       let ltr = enteredWord[i].toUpperCase()
-      ltrMap.set(i, { color: findColor(i, ltr), ltr })
+      ltrMap.set(i, { color: findColor(i, ltr, wordOfTheDay), ltr })
     }
 
     //add one letter at a time
@@ -290,7 +287,7 @@ export default function Grid({ gridMap, setGridMap }) {
         </div>
       )}
       <button onClick={addWin} className="text-white">
-        Hello
+        {wordOfTheDay}
       </button>
       <div className="">
         {[...Array(NUM_ROWS)].map((_, rowI) => (

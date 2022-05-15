@@ -25,6 +25,7 @@ export default function useLocalStorageState(key, initialState, fn) {
   const clear = () => {
     setter(new Map())
     localStorage.removeItem(key)
+    localStorage.removeItem("wordoftheday")
     typeof fn === "function" && fn()
   }
 
