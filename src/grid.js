@@ -5,7 +5,7 @@ import Keyboard from "./keyboard"
 import wordList from "word-list-json"
 import Animater from "./animater"
 import { useDispatch } from "react-redux"
-import { addNumPlayed } from "./redux"
+import { addNumPlayed, addWin } from "./redux"
 
 const NUM_ROWS = 6
 const NUM_COLS = 5
@@ -211,8 +211,13 @@ export default function Grid({ gridMap, setGridMap }) {
     let updatedMap = await addToAttempts(letters)
 
     //if we are on last row dispatch to num played
-    if (currentRow === NUM_ROWS - 1 || isWinner(updatedMap)) {
+    if (currentRow === NUM_ROWS - 1) {
       dispatch(addNumPlayed())
+    }
+
+    if (isWinner(updatedMap)) {
+      dispatch(addNumPlayed())
+      dispatch(addWin())
     }
 
     //go to next row and reset pos to 0
@@ -264,7 +269,7 @@ export default function Grid({ gridMap, setGridMap }) {
   }
 
   return (
-    <>
+    <div className="flex flex-col items-center justify-end h-screen p-10">
       {isGameOver && (
         <Alert style={{ zIndex: 5000 }} icon={false} className="fixed top-16">
           <b>{isGameOver.outcome}</b>
@@ -287,10 +292,10 @@ export default function Grid({ gridMap, setGridMap }) {
           ))}
         </>
       )}
-      <button onClick={() => dispatch(addNumPlayed())} className="text-white">
+      <button onClick={() => dispatch(addWin())} className="text-white">
         Hello
       </button>
-      <div className="fixed top-[50%] left-[50%] -mt-[300px] -ml-[170px]">
+      <div className="">
         {[...Array(NUM_ROWS)].map((_, rowI) => (
           <div
             key={rowI}
@@ -330,7 +335,7 @@ export default function Grid({ gridMap, setGridMap }) {
         handleDelete={handleDelete}
         handleKey={handleKeyWrapper(handleKey)}
       />
-    </>
+    </div>
   )
 }
 

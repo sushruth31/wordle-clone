@@ -1,4 +1,4 @@
 import { store } from "./store"
-import { addNumPlayed, resetStats } from "./statsslice"
+import { addNumPlayed, resetStats, addWin } from "./statsslice"
 
-export { store, addNumPlayed, resetStats }
+export { store, addNumPlayed, resetStats, addWin }

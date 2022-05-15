@@ -12,6 +12,7 @@ function Card({ children }) {
 
 export default function Stats() {
   const numPlayed = useSelector(state => state.stats.numPlayed)
+  const numWins = useSelector(state => state.stats.wins)
   const dispatch = useDispatch()
   return (
     <>
@@ -19,18 +20,19 @@ export default function Stats() {
         <Card>
           <Typography variant="h4">{numPlayed}</Typography>
           <Typography>Played</Typography>
+          11{" "}
+        </Card>
+        <Card>
+          <Typography variant="h4">{numWins}</Typography>
+          <Typography>Win %</Typography>
         </Card>
         <Card>
           <Typography variant="h4">{numPlayed}</Typography>
-          <Typography>Played</Typography>
+          <Typography>Current Streak</Typography>
         </Card>
         <Card>
           <Typography variant="h4">{numPlayed}</Typography>
-          <Typography>Played</Typography>
-        </Card>
-        <Card>
-          <Typography variant="h4">{numPlayed}</Typography>
-          <Typography>Played</Typography>
+          <Typography>Max Streak</Typography>
         </Card>
       </div>
       <Button onClick={() => dispatch(resetStats())}>Reset Stats</Button>

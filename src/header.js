@@ -11,7 +11,7 @@ import { SCREENTYPES } from "./App"
 export default function Header({ clear, openCover }) {
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
+      <AppBar position="fixed">
         <Toolbar className="bg-[#111313] border border-b-gray-600 border-[#111313]">
           <IconButton onClick={clear} size="large" edge="start" sx={{ mr: 2 }}>
             <RestartAlt className="text-white" />

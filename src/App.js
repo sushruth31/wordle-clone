@@ -53,9 +53,8 @@ export default function App() {
         />
       </Modal>
       <Header openCover={openCover} clear={clear} />
-      <div className="flex items-center justify-center h-[100%] flex-col">
-        <Grid key={gridKey} gridMap={gridMap} setGridMap={setGridMap} />
-      </div>
+
+      <Grid key={gridKey} gridMap={gridMap} setGridMap={setGridMap} />
     </>
   )
 }

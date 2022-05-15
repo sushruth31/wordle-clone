@@ -1,37 +1,5 @@
 import { useState } from "react"
-
-const isItANum = str => !isNaN(str)
-
-export const deepClone = (o, f = v => v) => {
-  let target = {}
-  o = o instanceof Map ? Object.fromEntries(o) : o
-
-  for (let key of Object.keys(o)) {
-    let val = o[key]
-    if (typeof val === "object") {
-      target[key] = f(deepClone(val), key)
-    } else {
-      target[key] = f(val, key)
-    }
-  }
-  return target
-}
-
-const mapify = obj => {
-  let target = new Map()
-
-  for (let key of Object.keys(obj)) {
-    target.set(isItANum(key) ? Number(key) : key, createMap(obj[key]))
-  }
-
-  function createMap(obj) {
-    if (["ltr", "color"].some(key => key in obj)) {
-      return obj
-    }
-    return mapify(obj)
-  }
-  return target
-}
+import { mapify, deepClone } from "./utils"
 
 export const getSavedData = (key, initialState, map = true) => {
   let item = initialState

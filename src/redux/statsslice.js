@@ -9,12 +9,15 @@ export const statsSlice = createSlice({
     },
     resetStats: state => {
       state.numPlayed = 0
-      state.someOtherStat = 0
+      state.wins = 0
+    },
+    addWin: state => {
+      state.wins = Number(state.wins) + 1
     },
   },
 })
 
-export const { resetStats, addNumPlayed } = statsSlice.actions
+export const { resetStats, addNumPlayed, addWin } = statsSlice.actions
 
 //selectors
 export const getNumPlayed = state => state.stats.numPlayed
