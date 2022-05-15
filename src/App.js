@@ -13,10 +13,11 @@ export const SCREENTYPES = {
 }
 
 export default function App() {
+  const resetMap = () => setGridKey(p => p + 1)
   const [gridMap, setGridMap, clear] = useLocalStorageState(
     "gridmap",
     new Map(),
-    () => setGridKey(p => p + 1)
+    resetMap
   )
   const [gridKey, setGridKey] = useState(0)
   const [modalState, setModalState] = useState({

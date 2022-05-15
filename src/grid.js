@@ -47,6 +47,8 @@ const handleKeyWrapper = fn => keyEvent =>
   fn(keyEvent.target.innerText.toUpperCase())
 
 export default function Grid({ gridMap, setGridMap }) {
+  //this should be loaded before gridmap
+  const wordOfTheDay = findRandomWord(myWordList)
   const [currentSquareinRow, setCurrentSqaureInRow] = useState(-1)
   const [isGameOver, setIsGameOver] = useState(null)
   const [currentRow, setCurrentRow] = useState(null)
@@ -57,7 +59,6 @@ export default function Grid({ gridMap, setGridMap }) {
   const addNumPlayed = useAction(actions.addNumPlayed)
   const addWin = useAction(actions.addWin)
   const timeouts = useRef([])
-  const wordOfTheDay = findRandomWord(myWordList)
 
   useEffect(() => {
     if (!numberOfMessages) {

@@ -43,7 +43,7 @@ export const findRandomWord = wordList => {
   let curTime = new Date().getTime()
   //if no item assign new number
 
-  if (!item || curTime >= item?.exp) {
+  if (!item?.word || curTime >= item?.exp) {
     return createWord()
   }
 
