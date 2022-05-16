@@ -1,5 +1,8 @@
 import { useState } from "react"
-import { mapify, deepClone } from "./utils"
+import { actions } from "./redux"
+import { mapify, deepClone, useAction, findRandomWord } from "./utils"
+import { useSelector } from "react-redux"
+import { myWordList } from "./wordlist"
 
 export const getSavedData = (key, initialState, map = true) => {
   let item = initialState
@@ -16,7 +19,7 @@ export const getSavedData = (key, initialState, map = true) => {
 
 export default function useLocalStorageState(key, initialState, fn) {
   const [state, setter] = useState(() => getSavedData(key, initialState))
-
+  const newWord = useAction(actions.newWord)
   const storeItem = item => {
     item = JSON.stringify(deepClone(item))
     localStorage.setItem(key, item)
@@ -25,7 +28,11 @@ export default function useLocalStorageState(key, initialState, fn) {
   const clear = () => {
     setter(new Map())
     localStorage.removeItem(key)
-    localStorage.removeItem("wordoftheday")
+
+    //remove word from redux state. update local store and dispatch new word action
+    //temmp remove redux from local storage. middleware will add it back once dispatch is called
+    localStorage.removeItem("state")
+    newWord(findRandomWord(myWordList))
     typeof fn === "function" && fn()
   }
 

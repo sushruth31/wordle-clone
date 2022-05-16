@@ -20,34 +20,42 @@ const findRandomNumber = (max, min = 0) =>
   Math.floor(Math.random() * (max - min + 1) + min)
 
 export const findRandomWord = wordList => {
+  //need to return obj {word, exp}
+  let curTime = new Date().getTime(),
+    exp = curTime + 43200000,
+    item
+
   const createWord = () => {
-    let index = Math.floor(Math.random() * wordList.length)
-    let word = wordList[index]
+    let randIndex = Math.floor(Math.random() * wordList.length)
+    let word = wordList[randIndex]
+    let existingState
+    try {
+      existingState = JSON.parse(localStorage.getItem("state"))
+    } catch {
+      existingState = {}
+    }
     localStorage.setItem(
-      "wordoftheday",
-      JSON.stringify({ word, exp: curTime + 43200000 })
+      "state",
+      JSON.stringify({ ...existingState, word: { word, exp } })
     )
     //wipe saved data when new word is created
     localStorage.removeItem("gridmap")
-    return word
+    return { word, exp }
   }
 
-  let item
-
   try {
-    item = JSON.parse(localStorage.getItem("wordoftheday"))
+    item = JSON.parse(localStorage.getItem("state"))?.word
   } catch {
     return createWord()
   }
-  //check local storage key: randIndex, val: {word: sdf, exp: 23442}
-  let curTime = new Date().getTime()
+
   //if no item assign new number
 
   if (!item?.word || curTime >= item?.exp) {
     return createWord()
   }
 
-  return item.word
+  return item
 }
 
 export const shuffle = arr => {
@@ -64,7 +72,7 @@ export const shuffle = arr => {
 
 export function useAction(action) {
   const dispatch = useDispatch()
-  return () => dispatch(action())
+  return (...args) => dispatch(action(...args))
 }
 
 export const deepClone = (o, f = v => v) => {

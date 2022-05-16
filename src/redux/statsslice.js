@@ -17,7 +17,7 @@ export const statsSlice = createSlice({
   },
 })
 
-export const actions = statsSlice.actions
+export const actions2 = statsSlice.actions
 
 //selectors
 export const getNumPlayed = state => state.stats.numPlayed

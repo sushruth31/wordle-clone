@@ -1,14 +1,14 @@
 import { Alert, Typography } from "@mui/material"
 import { useEffect, useMemo, useState, useRef, createElement } from "react"
 import Keyboard from "./keyboard"
-import wordList from "word-list-json"
 import Animater from "./animater"
 import { useAction, shuffle, delay, findRandomWord } from "./utils"
 import { actions } from "./redux"
+import { myWordList } from "./wordlist"
+import { useSelector } from "react-redux"
 
 const NUM_ROWS = 6
 const NUM_COLS = 5
-const myWordList = shuffle(wordList.filter(word => word.length === NUM_COLS))
 
 export const colorMap = new Map(
   Object.entries({
@@ -48,7 +48,7 @@ const handleKeyWrapper = fn => keyEvent =>
 
 export default function Grid({ gridMap, setGridMap }) {
   //this should be loaded before gridmap
-  const wordOfTheDay = findRandomWord(myWordList)
+  const wordOfTheDay = useSelector(s => s.word.word)
   const [currentSquareinRow, setCurrentSqaureInRow] = useState(-1)
   const [isGameOver, setIsGameOver] = useState(null)
   const [currentRow, setCurrentRow] = useState(null)
