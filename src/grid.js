@@ -2,7 +2,7 @@ import { Alert, Typography } from "@mui/material"
 import { useEffect, useMemo, useState, useRef, createElement } from "react"
 import Keyboard from "./keyboard"
 import Animater from "./animater"
-import { useAction, shuffle, delay, findRandomWord } from "./utils"
+import { useAction, delay } from "./utils"
 import { actions } from "./redux"
 import { myWordList } from "./wordlist"
 import { useSelector } from "react-redux"
@@ -57,7 +57,7 @@ export default function Grid({ gridMap, setGridMap }) {
   const [isError, setError] = useState(false)
   const [squareAnimating, setSquareAnimating] = useState(new Map())
   const addNumPlayed = useAction(actions.addNumPlayed)
-  const addWin = useAction(actions.addWin)
+  const addWin = useAction(actions.addWinThunk)
   const timeouts = useRef([])
 
   useEffect(() => {

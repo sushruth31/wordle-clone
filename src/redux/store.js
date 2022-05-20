@@ -1,23 +1,13 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit"
 import statsReducer from "./statsslice"
-import { shuffle, deepClone, asyncStorage, findRandomWord } from "../utils"
+import { deepClone, asyncStorage, findRandomWord } from "../utils"
 import { getSavedData } from "../uselocalstoragestate"
 import { myWordList } from "../wordlist"
 import wordReducer from "./wordslice"
+import { thunkMiddleware, persistStore } from "./middleware"
 
 export const NUM_ROWS = 6
 export const NUM_COLS = 5
-
-const persistStore = store => next => action => {
-  let result = next(action)
-  try {
-    //update store async
-    asyncStorage.setItem("state", JSON.stringify(store.getState()))
-  } catch {
-    console.warn("data not saved")
-  }
-  return result
-}
 
 const initialState = {
   stats: {
@@ -42,5 +32,5 @@ function rehydrateState(state) {
 export const store = configureStore({
   reducer: combineReducers({ stats: statsReducer, word: wordReducer }),
   preloadedState: rehydrateState(initialState),
-  middleware: () => [persistStore],
+  middleware: () => [persistStore, thunkMiddleware],
 })

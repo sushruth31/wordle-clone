@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { actions } from "./redux"
 import { mapify, deepClone, useAction, findRandomWord } from "./utils"
-import { useSelector } from "react-redux"
 import { myWordList } from "./wordlist"
 
 export const getSavedData = (key, initialState, map = true) => {

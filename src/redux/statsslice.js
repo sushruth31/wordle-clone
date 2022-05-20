@@ -17,6 +17,16 @@ export const statsSlice = createSlice({
   },
 })
 
+export function addWinThunk() {
+  return (dispatch, getState) => {
+    //only add win when numplayed > 0
+    let numPlayed = getState().stats.numPlayed
+    if (numPlayed > 0) {
+      dispatch(statsSlice.actions.addWin())
+    }
+  }
+}
+
 export const actions2 = statsSlice.actions
 
 //selectors

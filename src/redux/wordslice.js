@@ -1,6 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit"
-import { findRandomWord } from "../utils"
-import { myWordList } from "../wordlist"
 
 export const wordSlice = createSlice({
   name: "word",
